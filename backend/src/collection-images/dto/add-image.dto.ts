@@ -1,7 +1,20 @@
+import { IsOptional, IsString } from 'class-validator';
+
 export class AddImageDto {
-  nasaId: string;
-  title: string;
-  url: string;
+  @IsString()
+  nasaId!: string;
+
+  @IsString()
+  title!: string;
+
+  @IsString()
+  url!: string;
+
+  @IsOptional()
+  @IsString()
   date?: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
 }

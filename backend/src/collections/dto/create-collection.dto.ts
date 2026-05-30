@@ -1,4 +1,10 @@
+import { IsOptional, IsString } from 'class-validator';
+
 export class CreateCollectionDto {
-  name: string;
+  @IsString()
+  name!: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
 }
