@@ -10,7 +10,7 @@ interface NasaState {
   currentImage: NasaImage | null;
   isLoading: boolean;
   error: string | null;
-  search: (q: string, page?: number) => Promise<void>;
+  search: (q: string, page?: number, yearStart?: number, yearEnd?: number) => Promise<void>;
   fetchImage: (nasaId: string) => Promise<void>;
   clearResults: () => void;
 }
@@ -24,11 +24,16 @@ export const useNasaStore = create<NasaState>((set) => ({
   isLoading: false,
   error: null,
 
-  search: async (q, page = 1) => {
+  search: async (q, page = 1, yearStart?, yearEnd?) => {
     set({ isLoading: true, error: null, query: q, page });
     try {
       const { data } = await api.get<NasaSearchResult>('/nasa/search', {
-        params: { q, page },
+        params: {
+          q,
+          page,
+          ...(yearStart && { year_start: yearStart }),
+          ...(yearEnd && { year_end: yearEnd }),
+        },
       });
       set({ results: data.results, total: data.total, page: data.page });
     } catch {
