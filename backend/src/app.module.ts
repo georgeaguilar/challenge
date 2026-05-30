@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { CollectionsModule } from './collections/collections.module';
 import { NasaModule } from './nasa/nasa.module';
 import { CollectionImagesModule } from './collection-images/collection-images.module';
+import { AiSummaryModule } from './ai-summary/ai-summary.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CollectionImagesModule } from './collection-images/collection-images.mo
     CollectionsModule,
     NasaModule,
     CollectionImagesModule,
+    AiSummaryModule,
   ],
 })
 export class AppModule {}
