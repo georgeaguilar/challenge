@@ -50,7 +50,6 @@ export class SemanticSearchHandler implements IQueryHandler<SemanticSearchQuery>
           q: keywords,
           media_type: 'image',
           page: query.page,
-          api_key: this.config.get<string>('NASA_API_KEY'),
         },
       }),
     );

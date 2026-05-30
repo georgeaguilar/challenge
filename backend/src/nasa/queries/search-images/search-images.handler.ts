@@ -45,7 +45,6 @@ export class SearchImagesHandler implements IQueryHandler<SearchImagesQuery> {
           page: query.page,
           ...(query.yearStart && { year_start: query.yearStart }),
           ...(query.yearEnd && { year_end: query.yearEnd }),
-          api_key: this.config.get<string>('NASA_API_KEY'),
         },
       }),
     );
