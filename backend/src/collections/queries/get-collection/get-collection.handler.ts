@@ -10,7 +10,12 @@ export class GetCollectionHandler implements IQueryHandler<GetCollectionQuery> {
   async execute(query: GetCollectionQuery) {
     const collection = await this.prisma.collection.findUnique({
       where: { id: query.id },
-      include: { images: { orderBy: { addedAt: 'desc' } } },
+      include: {
+        images: {
+          orderBy: { addedAt: 'desc' },
+          include: { tags: { include: { tag: true } } },
+        },
+      },
     });
 
     if (!collection) throw new NotFoundException('Collection not found');
