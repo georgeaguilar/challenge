@@ -4,6 +4,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { CollectionsModule } from './collections/collections.module';
 import { NasaModule } from './nasa/nasa.module';
+import { CollectionImagesModule } from './collection-images/collection-images.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { NasaModule } from './nasa/nasa.module';
     AuthModule,
     CollectionsModule,
     NasaModule,
+    CollectionImagesModule,
   ],
 })
 export class AppModule {}
