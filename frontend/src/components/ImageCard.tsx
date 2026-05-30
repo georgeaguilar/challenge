@@ -13,6 +13,8 @@ export default function ImageCard({ image, collectionId, onRemove, onUpdate }: I
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [newTag, setNewTag] = useState('');
   const [showTags, setShowTags] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   async function handleGenerateSummary() {
     setLoadingSummary(true);
@@ -23,6 +25,20 @@ export default function ImageCard({ image, collectionId, onRemove, onUpdate }: I
       onUpdate(data);
     } finally {
       setLoadingSummary(false);
+    }
+  }
+
+  async function handleSuggestTags() {
+    setLoadingSuggestions(true);
+    setSuggestions([]);
+    try {
+      const { data } = await api.get<{ suggestions: string[] }>(
+        `/collections/${collectionId}/images/${image.id}/tags/suggestions`,
+      );
+      setSuggestions(data.suggestions);
+      setShowTags(true);
+    } finally {
+      setLoadingSuggestions(false);
     }
   }
 
@@ -39,6 +55,15 @@ export default function ImageCard({ image, collectionId, onRemove, onUpdate }: I
     setNewTag('');
   }
 
+  async function handleAddSuggestedTag(tag: string) {
+    await api.post(`/collections/${collectionId}/images/${image.id}/tags`, { name: tag });
+    const { data } = await api.get<CollectionImage>(
+      `/collections/${collectionId}/images/${image.id}`,
+    );
+    onUpdate(data);
+    setSuggestions((prev) => prev.filter((s) => s !== tag));
+  }
+
   async function handleRemoveTag(tagId: string) {
     await api.delete(`/collections/${collectionId}/images/${image.id}/tags/${tagId}`);
     const { data } = await api.get<CollectionImage>(
@@ -50,25 +75,20 @@ export default function ImageCard({ image, collectionId, onRemove, onUpdate }: I
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
       {image.url ? (
-        <img
-          src={image.url}
-          alt={image.title}
-          className="h-48 w-full object-cover"
-          loading="lazy"
-        />
+        <img src={image.url} alt={image.title} className="h-48 w-full object-cover" loading="lazy" />
       ) : (
         <div className="flex h-48 items-center justify-center bg-slate-800 text-4xl">🌌</div>
       )}
 
       <div className="flex flex-1 flex-col gap-3 p-4">
-        <h3 className="font-semibold text-white line-clamp-2 text-sm">{image.title}</h3>
+        <h3 className="line-clamp-2 text-sm font-semibold text-white">{image.title}</h3>
 
         {image.date && (
           <p className="text-xs text-slate-500">{new Date(image.date).toLocaleDateString()}</p>
         )}
 
         {image.aiSummary ? (
-          <p className="text-xs text-slate-400 line-clamp-3 italic">"{image.aiSummary}"</p>
+          <p className="line-clamp-3 text-xs italic text-slate-400">"{image.aiSummary}"</p>
         ) : (
           <button
             onClick={handleGenerateSummary}
@@ -96,12 +116,35 @@ export default function ImageCard({ image, collectionId, onRemove, onUpdate }: I
           ))}
         </div>
 
-        <button
-          onClick={() => setShowTags((v) => !v)}
-          className="w-fit text-xs text-slate-500 hover:text-slate-300"
-        >
-          + add tag
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowTags((v) => !v)}
+            className="text-xs text-slate-500 hover:text-slate-300"
+          >
+            + add tag
+          </button>
+          <button
+            onClick={handleSuggestTags}
+            disabled={loadingSuggestions}
+            className="text-xs text-violet-500 hover:text-violet-400 disabled:opacity-50"
+          >
+            {loadingSuggestions ? '✨...' : '✨ suggest'}
+          </button>
+        </div>
+
+        {suggestions.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {suggestions.map((s) => (
+              <button
+                key={s}
+                onClick={() => void handleAddSuggestedTag(s)}
+                className="rounded-full border border-violet-500/40 px-2 py-0.5 text-xs text-violet-400 transition hover:bg-violet-500/20"
+              >
+                + #{s}
+              </button>
+            ))}
+          </div>
+        )}
 
         {showTags && (
           <form onSubmit={handleAddTag} className="flex gap-2">
