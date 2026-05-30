@@ -9,14 +9,15 @@ const MISSION_CHIPS = ['Apollo', 'Hubble', 'Mars', 'ISS', 'Artemis', 'Voyager', 
 const CURRENT_YEAR = new Date().getFullYear();
 
 export default function SearchPage() {
-  const { results, total, page, query, isLoading, search, semanticSearch, translatedKeywords } = useNasaStore();
+  const { results, total, page, query, isLoading, search, semanticSearch, translatedKeywords } =
+    useNasaStore();
 
   const [input, setInput] = useState('');
   const [yearStart, setYearStart] = useState('');
   const [yearEnd, setYearEnd] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [selected, setSelected] = useState<NasaImage | null>(null);
   const [isSemantic, setIsSemantic] = useState(false);
+  const [selected, setSelected] = useState<NasaImage | null>(null);
 
   function getFilters() {
     return {
@@ -37,7 +38,9 @@ export default function SearchPage() {
   }
 
   function handleMissionChip(mission: string) {
-    const next = input.includes(mission) ? input.replace(mission, '').trim() : `${input} ${mission}`.trim();
+    const next = input.includes(mission)
+      ? input.replace(mission, '').trim()
+      : `${input} ${mission}`.trim();
     setInput(next);
   }
 
@@ -54,29 +57,31 @@ export default function SearchPage() {
     <AppLayout>
       <h1 className="mb-6 text-2xl font-bold text-white">Search NASA Images</h1>
 
-      <form onSubmit={handleSearch} className="flex flex-col gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 p-1 w-fit text-xs">
-          <button
-            type="button"
-            onClick={() => setIsSemantic(false)}
-            className={`rounded-md px-3 py-1.5 transition ${!isSemantic ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            Keyword
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsSemantic(true)}
-            className={`rounded-md px-3 py-1.5 transition ${isSemantic ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            ✨ Semantic
-          </button>
-        </div>
+      <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 p-1 w-fit text-xs">
+        <button
+          onClick={() => setIsSemantic(false)}
+          className={`rounded-md px-3 py-1.5 transition ${!isSemantic ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
+        >
+          Keyword
+        </button>
+        <button
+          onClick={() => setIsSemantic(true)}
+          className={`rounded-md px-3 py-1.5 transition ${isSemantic ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white'}`}
+        >
+          ✨ Semantic
+        </button>
+      </div>
 
+      <form onSubmit={handleSearch} className="flex flex-col gap-3">
         <div className="flex gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isSemantic ? 'e.g. "sunsets on Mars" or "galaxias espirales azules"' : 'Search stars, galaxies, Mars...'}
+            placeholder={
+              isSemantic
+                ? '"sunsets on Mars" o "galaxias espirales azules"'
+                : 'Search stars, galaxies, Mars...'
+            }
             className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-violet-500"
           />
           <Button type="submit" loading={isLoading}>
@@ -99,17 +104,18 @@ export default function SearchPage() {
 
         {isSemantic && (
           <p className="text-xs text-slate-500">
-            Describe what you want in any language — AI will find the best NASA images for you.
+            Describe what you want in any language — AI finds the best NASA images for you.
           </p>
         )}
 
         {translatedKeywords && isSemantic && (
           <p className="text-xs text-slate-400">
-            🔍 Searched NASA for: <span className="text-violet-400 font-medium">{translatedKeywords}</span>
+            🔍 Searched for:{' '}
+            <span className="font-medium text-violet-400">{translatedKeywords}</span>
           </p>
         )}
 
-        {showFilters && (
+        {showFilters && !isSemantic && (
           <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-1">
@@ -137,7 +143,6 @@ export default function SearchPage() {
                 />
               </div>
             </div>
-
             <div className="mt-4">
               <p className="mb-2 text-xs font-medium text-slate-400">Mission</p>
               <div className="flex flex-wrap gap-2">
@@ -157,7 +162,6 @@ export default function SearchPage() {
                 ))}
               </div>
             </div>
-
             {hasActiveFilters && (
               <button
                 type="button"
@@ -179,12 +183,12 @@ export default function SearchPage() {
         <div className="mt-16 flex flex-col items-center gap-3 text-center">
           <span className="text-5xl">🔭</span>
           <p className="text-slate-400">Search for anything in the NASA image library.</p>
-          <div className="flex flex-wrap justify-center gap-2 mt-2">
+          <div className="mt-2 flex flex-wrap justify-center gap-2">
             {MISSION_CHIPS.map((m) => (
               <button
                 key={m}
                 onClick={() => { setInput(m); void search(m); }}
-                className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400 hover:border-violet-500 hover:text-violet-400 transition"
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400 transition hover:border-violet-500 hover:text-violet-400"
               >
                 {m}
               </button>

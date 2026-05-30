@@ -48,6 +48,9 @@ export interface NasaImage {
   description: string | null;
   date: string | null;
   url: string | null;
+  rover?: string;
+  camera?: string;
+  sol?: number;
 }
 
 export interface NasaSearchResult {
