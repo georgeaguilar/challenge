@@ -9,13 +9,14 @@ const MISSION_CHIPS = ['Apollo', 'Hubble', 'Mars', 'ISS', 'Artemis', 'Voyager', 
 const CURRENT_YEAR = new Date().getFullYear();
 
 export default function SearchPage() {
-  const { results, total, page, query, isLoading, search } = useNasaStore();
+  const { results, total, page, query, isLoading, search, semanticSearch, translatedKeywords } = useNasaStore();
 
   const [input, setInput] = useState('');
   const [yearStart, setYearStart] = useState('');
   const [yearEnd, setYearEnd] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selected, setSelected] = useState<NasaImage | null>(null);
+  const [isSemantic, setIsSemantic] = useState(false);
 
   function getFilters() {
     return {
@@ -27,8 +28,12 @@ export default function SearchPage() {
   async function handleSearch(e: { preventDefault(): void }) {
     e.preventDefault();
     if (!input.trim()) return;
-    const { yearStart: ys, yearEnd: ye } = getFilters();
-    await search(input.trim(), 1, ys, ye);
+    if (isSemantic) {
+      await semanticSearch(input.trim());
+    } else {
+      const { yearStart: ys, yearEnd: ye } = getFilters();
+      await search(input.trim(), 1, ys, ye);
+    }
   }
 
   function handleMissionChip(mission: string) {
@@ -50,28 +55,59 @@ export default function SearchPage() {
       <h1 className="mb-6 text-2xl font-bold text-white">Search NASA Images</h1>
 
       <form onSubmit={handleSearch} className="flex flex-col gap-3">
+        <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 p-1 w-fit text-xs">
+          <button
+            type="button"
+            onClick={() => setIsSemantic(false)}
+            className={`rounded-md px-3 py-1.5 transition ${!isSemantic ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            Keyword
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsSemantic(true)}
+            className={`rounded-md px-3 py-1.5 transition ${isSemantic ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            ✨ Semantic
+          </button>
+        </div>
+
         <div className="flex gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Search stars, galaxies, Mars..."
+            placeholder={isSemantic ? 'e.g. "sunsets on Mars" or "galaxias espirales azules"' : 'Search stars, galaxies, Mars...'}
             className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-violet-500"
           />
           <Button type="submit" loading={isLoading}>
             Search
           </Button>
-          <button
-            type="button"
-            onClick={() => setShowFilters((v) => !v)}
-            className={`rounded-lg border px-3 py-2 text-sm transition ${
-              hasActiveFilters
-                ? 'border-violet-500 bg-violet-500/10 text-violet-400'
-                : 'border-slate-700 text-slate-400 hover:bg-slate-800'
-            }`}
-          >
-            Filters {hasActiveFilters && '•'}
-          </button>
+          {!isSemantic && (
+            <button
+              type="button"
+              onClick={() => setShowFilters((v) => !v)}
+              className={`rounded-lg border px-3 py-2 text-sm transition ${
+                hasActiveFilters
+                  ? 'border-violet-500 bg-violet-500/10 text-violet-400'
+                  : 'border-slate-700 text-slate-400 hover:bg-slate-800'
+              }`}
+            >
+              Filters {hasActiveFilters && '•'}
+            </button>
+          )}
         </div>
+
+        {isSemantic && (
+          <p className="text-xs text-slate-500">
+            Describe what you want in any language — AI will find the best NASA images for you.
+          </p>
+        )}
+
+        {translatedKeywords && isSemantic && (
+          <p className="text-xs text-slate-400">
+            🔍 Searched NASA for: <span className="text-violet-400 font-medium">{translatedKeywords}</span>
+          </p>
+        )}
 
         {showFilters && (
           <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">

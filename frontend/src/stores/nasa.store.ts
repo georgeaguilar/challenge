@@ -11,6 +11,8 @@ interface NasaState {
   isLoading: boolean;
   error: string | null;
   search: (q: string, page?: number, yearStart?: number, yearEnd?: number) => Promise<void>;
+  semanticSearch: (q: string, page?: number) => Promise<void>;
+  translatedKeywords: string | null;
   fetchImage: (nasaId: string) => Promise<void>;
   clearResults: () => void;
 }
@@ -23,6 +25,22 @@ export const useNasaStore = create<NasaState>((set) => ({
   currentImage: null,
   isLoading: false,
   error: null,
+  translatedKeywords: null,
+
+  semanticSearch: async (q, page = 1) => {
+    set({ isLoading: true, error: null, query: q, page, translatedKeywords: null });
+    try {
+      const { data } = await api.get<NasaSearchResult & { keywords: string }>(
+        '/nasa/semantic-search',
+        { params: { q, page } },
+      );
+      set({ results: data.results, total: data.total, page: data.page, translatedKeywords: data.keywords });
+    } catch {
+      set({ error: 'Failed to perform semantic search' });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
   search: async (q, page = 1, yearStart?, yearEnd?) => {
     set({ isLoading: true, error: null, query: q, page });
