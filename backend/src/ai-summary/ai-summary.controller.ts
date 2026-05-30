@@ -1,5 +1,6 @@
 import { Controller, Post, Param, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { GenerateSummaryCommand } from './commands/generate-summary/generate-summary.command';
@@ -14,6 +15,7 @@ interface AuthUser {
 export class AiSummaryController {
   constructor(private readonly commandBus: CommandBus) {}
 
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post()
   generate(
     @Param('collectionId') collectionId: string,

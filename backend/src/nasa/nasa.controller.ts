@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SearchImagesQuery } from './queries/search-images/search-images.query';
 import { GetImageQuery } from './queries/get-image/get-image.query';
@@ -10,6 +11,7 @@ import { SemanticSearchQuery } from './queries/semantic-search/semantic-search.q
 export class NasaController {
   constructor(private readonly queryBus: QueryBus) {}
 
+  @Throttle({ default: { ttl: 60000, limit: 30 } })
   @Get('search')
   search(
     @Query('q') q: string,
@@ -27,6 +29,7 @@ export class NasaController {
     );
   }
 
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   @Get('semantic-search')
   semanticSearch(@Query('q') q: string, @Query('page') page = 1) {
     return this.queryBus.execute(new SemanticSearchQuery(q, Number(page)));
