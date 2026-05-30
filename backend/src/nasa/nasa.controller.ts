@@ -10,8 +10,20 @@ export class NasaController {
   constructor(private readonly queryBus: QueryBus) {}
 
   @Get('search')
-  search(@Query('q') q: string, @Query('page') page = 1) {
-    return this.queryBus.execute(new SearchImagesQuery(q, Number(page)));
+  search(
+    @Query('q') q: string,
+    @Query('page') page = 1,
+    @Query('year_start') yearStart?: string,
+    @Query('year_end') yearEnd?: string,
+  ) {
+    return this.queryBus.execute(
+      new SearchImagesQuery(
+        q,
+        Number(page),
+        yearStart ? Number(yearStart) : undefined,
+        yearEnd ? Number(yearEnd) : undefined,
+      ),
+    );
   }
 
   @Get('images/:nasaId')

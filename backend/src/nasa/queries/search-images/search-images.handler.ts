@@ -41,8 +41,10 @@ export class SearchImagesHandler implements IQueryHandler<SearchImagesQuery> {
       this.http.get<NasaSearchResponse>(`${baseUrl}/search`, {
         params: {
           q: query.q,
-          media_type: 'image',
+          media_type: query.mediaType,
           page: query.page,
+          ...(query.yearStart && { year_start: query.yearStart }),
+          ...(query.yearEnd && { year_end: query.yearEnd }),
           api_key: this.config.get<string>('NASA_API_KEY'),
         },
       }),
