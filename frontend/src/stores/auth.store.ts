@@ -7,6 +7,7 @@ import type { User } from '../types';
 interface JwtPayload {
   sub: string;
   email: string;
+  name: string;
 }
 
 interface AuthState {
@@ -20,7 +21,7 @@ interface AuthState {
 
 function tokenToUser(token: string): User {
   const payload = jwtDecode<JwtPayload>(token);
-  return { id: payload.sub, email: payload.email };
+  return { id: payload.sub, email: payload.email, name: payload.name };
 }
 
 export const useAuthStore = create<AuthState>()(
