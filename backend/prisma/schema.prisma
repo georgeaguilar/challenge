@@ -24,12 +24,13 @@ model Collection {
   userId      String
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   images      CollectionImage[]
 }
 
 model CollectionImage {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   collectionId String
   nasaId       String
   title        String
@@ -37,7 +38,8 @@ model CollectionImage {
   date         String?
   description  String?
   aiSummary    String?
-  addedAt      DateTime @default(now())
+  addedAt      DateTime  @default(now())
+  deletedAt    DateTime?
   collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   tags         ImageTag[]
 
@@ -51,10 +53,11 @@ model Tag {
 }
 
 model ImageTag {
-  imageId String
-  tagId   String
-  image   CollectionImage @relation(fields: [imageId], references: [id], onDelete: Cascade)
-  tag     Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  imageId   String
+  tagId     String
+  deletedAt DateTime?
+  image     CollectionImage @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  tag       Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([imageId, tagId])
 }

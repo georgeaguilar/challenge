@@ -19,6 +19,14 @@ export class RemoveImageHandler implements ICommandHandler<RemoveImageCommand> {
       throw new NotFoundException('Image not found');
     if (image.collection.userId !== userId) throw new ForbiddenException();
 
-    return this.prisma.collectionImage.delete({ where: { id: imageId } });
+    const now = new Date();
+    await this.prisma.imageTag.updateMany({
+      where: { imageId, deletedAt: null },
+      data: { deletedAt: now },
+    });
+    return this.prisma.collectionImage.update({
+      where: { id: imageId },
+      data: { deletedAt: now },
+    });
   }
 }

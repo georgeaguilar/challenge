@@ -20,7 +20,7 @@ export class AddImageHandler implements ICommandHandler<AddImageCommand> {
     return this.prisma.collectionImage.upsert({
       where: { collectionId_nasaId: { collectionId, nasaId } },
       create: { collectionId, nasaId, title, url, date, description },
-      update: { title, url, date, description },
+      update: { title, url, date, description, deletedAt: null },
     });
   }
 }

@@ -19,8 +19,9 @@ export class RemoveTagHandler implements ICommandHandler<RemoveTagCommand> {
       throw new NotFoundException('Image not found');
     if (image.collection.userId !== userId) throw new ForbiddenException();
 
-    return this.prisma.imageTag.delete({
+    return this.prisma.imageTag.update({
       where: { imageId_tagId: { imageId, tagId } },
+      data: { deletedAt: new Date() },
     });
   }
 }

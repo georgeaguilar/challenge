@@ -9,11 +9,12 @@ export class GetCollectionHandler implements IQueryHandler<GetCollectionQuery> {
 
   async execute(query: GetCollectionQuery) {
     const collection = await this.prisma.collection.findUnique({
-      where: { id: query.id },
+      where: { id: query.id, deletedAt: null },
       include: {
         images: {
+          where: { deletedAt: null },
           orderBy: { addedAt: 'desc' },
-          include: { tags: { include: { tag: true } } },
+          include: { tags: { where: { deletedAt: null }, include: { tag: true } } },
         },
       },
     });

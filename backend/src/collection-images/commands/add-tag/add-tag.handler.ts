@@ -28,7 +28,7 @@ export class AddTagHandler implements ICommandHandler<AddTagCommand> {
     return this.prisma.imageTag.upsert({
       where: { imageId_tagId: { imageId, tagId: tag.id } },
       create: { imageId, tagId: tag.id },
-      update: {},
+      update: { deletedAt: null },
       include: { tag: true },
     });
   }

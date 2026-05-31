@@ -14,6 +14,14 @@ export class DeleteCollectionHandler implements ICommandHandler<DeleteCollection
     if (!collection) throw new NotFoundException('Collection not found');
     if (collection.userId !== userId) throw new ForbiddenException();
 
-    return this.prisma.collection.delete({ where: { id } });
+    const now = new Date();
+    await this.prisma.collectionImage.updateMany({
+      where: { collectionId: id, deletedAt: null },
+      data: { deletedAt: now },
+    });
+    return this.prisma.collection.update({
+      where: { id },
+      data: { deletedAt: now },
+    });
   }
 }

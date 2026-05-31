@@ -8,9 +8,9 @@ export class GetCollectionsHandler implements IQueryHandler<GetCollectionsQuery>
 
   execute(query: GetCollectionsQuery) {
     return this.prisma.collection.findMany({
-      where: { userId: query.userId },
+      where: { userId: query.userId, deletedAt: null },
       orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { images: true } } },
+      include: { _count: { select: { images: { where: { deletedAt: null } } } } },
     });
   }
 }

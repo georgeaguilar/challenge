@@ -9,8 +9,8 @@ export class GetCollectionImageHandler implements IQueryHandler<GetCollectionIma
 
   async execute(query: GetCollectionImageQuery) {
     const image = await this.prisma.collectionImage.findUnique({
-      where: { id: query.imageId },
-      include: { tags: { include: { tag: true } }, collection: true },
+      where: { id: query.imageId, deletedAt: null },
+      include: { tags: { where: { deletedAt: null }, include: { tag: true } }, collection: true },
     });
 
     if (!image || image.collectionId !== query.collectionId)
