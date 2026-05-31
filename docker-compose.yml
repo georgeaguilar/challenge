@@ -22,7 +22,9 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/spacexplorer
+      NODE_ENV: production
       JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       NASA_API_KEY: ${NASA_API_KEY:-DEMO_KEY}
       NASA_BASE_URL: https://images-api.nasa.gov
       OPENAI_API_KEY: ${OPENAI_API_KEY}
