@@ -15,7 +15,7 @@ interface CollectionsState {
   clearCurrent: () => void;
 }
 
-export const useCollectionsStore = create<CollectionsState>((set, get) => ({
+export const useCollectionsStore = create<CollectionsState>((set) => ({
   collections: [],
   currentCollection: null,
   isLoading: false,
