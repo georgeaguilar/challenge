@@ -1,135 +1,115 @@
-# MindShore - Desafio Técnico
+# SpaceXplorer
 
-**Plataforma de Exploración Espacial con IA**
+Aplicación fullstack para explorar, curar y enriquecer contenido del archivo de imágenes de la NASA usando IA generativa.
 
-> Crea una aplicación web fullstack que permita explorar, curar y enriquecer contenido espacial de NASA utilizando IA generativa.
+## Stack
 
-Este challenge es abierto y público. No necesitas que nadie te invite. Si sos desarrollador/a y querés sumarte a MindShore, este es tu punto de entrada.
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, Zustand, React Router 7 |
+| Backend | NestJS 11, CQRS, Prisma 7, PostgreSQL 16 |
+| IA | OpenAI SDK (GPT-4o-mini) |
+| Auth | JWT + bcrypt |
+| DevOps | Docker Compose |
 
-## ¿Cómo participar?
+## Funcionalidades
+
+**Core:**
+- Búsqueda de imágenes NASA con filtros por año y misión
+- Colecciones personalizadas con CRUD completo
+- Generación de resúmenes por imagen via OpenAI
+- Autenticación con registro y login
+
+**Diferenciadores implementados:**
+- **Búsqueda semántica** — escribe en lenguaje natural ("atardeceres en Marte") y la IA traduce la consulta a keywords que la API de NASA entiende
+- **Sistema de tags** — tagging manual por imagen más sugerencias generadas por IA
+
+## Requisitos
+
+- Docker y Docker Compose
+- Una API key de OpenAI (opcional — sin ella, las funciones de IA retornan error)
+- Una API key de NASA (opcional — usa `DEMO_KEY` como fallback, con rate limit de 30 req/hora)
+
+## Instalación y ejecución
+
+```bash
+# 1. Clonar el repo
+git clone https://github.com/georgeaguilar/challenge.git
+cd challenge
+
+# 2. Crear el archivo de variables de entorno
+cp .env.example .env
+# Editar .env con tus API keys
+
+# 3. Levantar todo
+docker compose up --build
+```
+
+La aplicación queda disponible en:
+- **Frontend:** http://localhost
+- **API:** http://localhost:3001/api
+
+### Variables de entorno
+
+```env
+NASA_API_KEY=tu_key_de_nasa       # Obtener en https://api.nasa.gov
+OPENAI_API_KEY=tu_key_de_openai
+JWT_SECRET=cambia_esto_en_produccion
+```
+
+## Arquitectura
 
 ```
-1. Forkeá este repositorio
-2. Leé este README completo antes de escribir una sola línea de código
-3. Construí tu solución
-4. Abrí un Pull Request contra este repo con tu trabajo
-5. Nuestro equipo de ingeniería lo revisa y te da feedback
+frontend/          React SPA servida por nginx
+backend/
+  src/
+    auth/          Registro, login, guards JWT
+    collections/   CRUD de colecciones (CQRS)
+    collection-images/  Imágenes dentro de colecciones, tags (CQRS)
+    nasa/          Proxy a NASA Image API + búsqueda semántica
+    ai-summary/    Generación de resúmenes y sugerencias de tags
+    prisma/        Servicio de base de datos
+prisma/
+  schema.prisma    Modelos: User, Collection, CollectionImage, Tag, ImageTag
+  migrations/      Historial de migraciones
 ```
 
-**No hay fecha límite.** Valoramos la calidad sobre la velocidad. Tomate el tiempo que necesites para demostrar tu mejor trabajo.
+El backend sigue el patrón **CQRS** via `@nestjs/cqrs`: cada operación de lectura es un `Query` con su `Handler`, cada escritura es un `Command` con su `Handler`. Esto separa intenciones claramente y facilita escalar reads/writes de forma independiente.
 
-## El desafío
+**Soft delete** está implementado en `Collection`, `CollectionImage` e `ImageTag`: en lugar de borrar registros se setea `deletedAt`. Al re-agregar una imagen o tag previamente eliminado, se restaura el registro (upsert con `deletedAt: null`) en lugar de crear un duplicado.
 
-### Objetivo
+## Decisiones técnicas y trade-offs
 
-Crear una aplicación web fullstack que conecte con la API de NASA para explorar imágenes espaciales, permita a los usuarios organizar ese contenido en colecciones, y use IA generativa (OpenAI) para enriquecer la experiencia.
+**CQRS en el backend**
+Agrega boilerplate para una app de este tamaño, pero demuestra cómo estructurar un sistema que crezca sin mezclar lógica de lectura y escritura. Si el proyecto fuera más pequeño, un simple service/controller habría sido suficiente.
 
-### Funcionalidades core (obligatorias)
+**Búsqueda semántica sin embeddings**
+En lugar de mantener una base de datos de vectores, la búsqueda semántica usa OpenAI para traducir la consulta del usuario a keywords en inglés que NASA entiende, luego ejecuta la búsqueda convencional. Es más simple de operar y no requiere infraestructura extra, a costa de no ser "verdadera" búsqueda vectorial.
 
-| Feature | Descripción |
-|---------|-------------|
-| **Búsqueda avanzada** | Buscar imágenes de NASA con filtros: fecha, rover, cámara, misión |
-| **Colecciones personalizadas** | Los usuarios pueden crear múltiples colecciones temáticas, no solo "favoritos" |
-| **Enriquecimiento con IA** | Generar descripciones, datos curiosos o contexto historico de las imágenes usando OpenAI (o cualquier LLM) |
-| **Autenticación** | Registro, login, y que cada usuario tenga sus propias colecciones |
+**Soft delete**
+Preserva historial y permite recuperación futura. El trade-off es que todos los queries deben filtrar `deletedAt: null` explícitamente; si se olvida en algún lugar, aparecen registros eliminados.
 
-### Diferenciadores (elegir al menos 2)
+**Zustand sobre Redux**
+API más simple y menos boilerplate para el scope de esta app. Redux tendría más sentido en una aplicación con estado global más complejo o equipo más grande.
 
-| Feature | Descripción |
-|---------|-------------|
-| Comparador de imágenes | Seleccionar 2+ imágenes y ver side-by-side con análisis comparativo generado por IA |
-| Timeline interactivo | Visualizar imágenes en una línea de tiempo navegable |
-| Exportar coleccion | Generar un PDF o presentación con las imágenes y descripciones |
-| Búsqueda semántica | Buscar imágenes por descripción natural ("mostrame atardeceres en Marte") |
-| Sistema de tags | Taggear imágenes manualmente o con sugerencias de IA |
+**DEMO_KEY como fallback de NASA**
+Permite levantar el proyecto sin configuración, pero el rate limit de 30 req/hora lo hace inutilizable en uso real. La documentación debe dejar claro que se necesita una key propia.
 
-## Requisitos técnicos
+## Tests
 
-### Frontend
+```bash
+# Backend
+cd backend && npm test
 
-- Framework moderno (React, Vue 3, Angular, Svelte)
-- Estado global (Redux, Pinia, Zustand, o similar)
-- Diseño responsive
-- Manejo de estados de carga, error y vacío
-- Al menos **un test unitario** de componente
+# Frontend
+cd frontend && npm test
+```
 
-### Backend
+## Qué haría con más tiempo
 
-- API RESTful o GraphQL
-- Autenticación con JWT o sesiones
-- Validación de inputs
-- Rate limiting básico para proteger las llamadas a APIs externas
-- Al menos **un test unitario o de integración**
-
-### Base de datos
-
-- Modelado relacional (PostgreSQL, MySQL, etc.) o documental coherente (MongoDB, Firebase, etc.)
-- Migraciones o seeds para facilitar el setup (o scripts para poblar datos iniciales)
-
-### DevOps (bonus)
-
-- Dockerizar la aplicación (`docker-compose` para levantar todo)
-- README con arquitectura y decisiones técnicas
-
-## APIs requeridas
-
-| API | Documentación |
-|-----|---------------|
-| NASA Image and Video Library | https://api.nasa.gov |
-| OpenAI GPT | https://platform.openai.com/docs |
-
-> **Nota:** La API de NASA es gratuita y solo requiere una API key que podes obtener en https://api.nasa.gov. Para OpenAI, podes usar el free tier o documentar como se integraria si no tenes acceso.
-
-## Criterios de evaluación
-
-| Aspecto | Peso |
-|---------|------|
-| Funcionalidad completa | 25% |
-| Calidad y claridad del código | 25% |
-| Arquitectura y estructura del proyecto | 20% |
-| UI/UX y atención al detalle | 15% |
-| Testing y documentación | 10% |
-| Creatividad y extras | 5% |
-
-## Entrega
-
-Tu Pull Request debe incluir:
-
-- **Código fuente completo** con historial de commits (queremos ver tu proceso)
-- **README en tu repo** con:
-  - Instrucciones de instalación y ejecución
-  - Decisiones técnicas y trade-offs
-  - Que harías con más tiempo
-- **Deploy funcional** es un plus (Vercel, Railway, Render, etc.)
-
-### Estructura del PR
-
-En la descripción de tu PR, contanos:
-
-1. ¿Qué construiste y por qué tomaste las decisiones que tomaste?
-2. ¿Qué diferenciadores elegiste y por qué?
-3. ¿Qué mejorías si tuvieras más tiempo?
-4. ¿Cualquier cosa que quieras que sepamos antes de revisar?
-
-## Consejos para destacar
-
-- **Commits atomicos y descriptivos** — nos importa ver como pensas, no un solo commit con todo
-- **Maneja errores de forma elegante** — tanto en frontend como backend. Los estados vacios y de error son parte de la UX
-- **Pensa en la seguridad** — no expongas API keys en el codigo, valida inputs, sanitiza datos
-- **Documenta las decisiones tecnicas** — especialmente los trade-offs. "Elegi X porque Y" vale más que la solución perfecta sin explicación
-- **Sorprendenos** — que harias diferente si este fuera tu producto?
-
-## ¿Preguntas?
-
-Si algo no esta claro, [abri un issue](https://github.com/mindshoresl/challenge/issues) en este repositorio. Hacer buenas preguntas es una habilidad que valoramos mucho.
-
-También podés escribirnos a **talent@mindshore.io**.
-
-## Sobre MindShore
-
-Somos una empresa de tecnología con presencia en mas de 12 países. Trabajamos en proyectos de Data & Analytics, Software Engineering, ERP/CRM e IA aplicada para clientes globales.
-
-Más info en [mindshore.io](https://mindshore.io/) y nuestro [LinkedIn](https://www.linkedin.com/company/mindshore)
-
-
-**Buena suerte. Esperamos ver tu talento.**
+1. **Más cobertura de tests** — integración en el backend (controllers + handlers contra DB real) y tests de componentes clave en el frontend (SearchPage, CollectionDetailPage)
+2. **Comparador de imágenes** — seleccionar 2+ imágenes y ver análisis comparativo generado por IA side-by-side
+3. **Export a PDF** — generar una presentación de la colección con imágenes y resúmenes de IA
+4. **Timeline interactivo** — visualizar las imágenes de una colección en una línea de tiempo navegable por año
+5. **Paginación en colecciones** — actualmente carga todas las imágenes de una colección; con muchas imágenes puede ser lento
+6. **Manejo de errores más granular en el frontend** — actualmente algunos errores de API no se muestran al usuario
