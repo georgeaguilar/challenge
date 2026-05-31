@@ -29,6 +29,7 @@ services:
       NASA_BASE_URL: https://images-api.nasa.gov
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       PORT: 3001
+      FRONTEND_URL: ${FRONTEND_URL:-https://challenge-three-pink.vercel.app}
 
   frontend:
     build: ./frontend
