@@ -12,5 +12,30 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  backend:
+    build: ./backend
+    container_name: spacexplorer_backend
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/spacexplorer
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      NASA_API_KEY: ${NASA_API_KEY:-DEMO_KEY}
+      NASA_BASE_URL: https://images-api.nasa.gov
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      PORT: 3001
+
+  frontend:
+    build: ./frontend
+    container_name: spacexplorer_frontend
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
