@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
 import ImageCard from '../components/ImageCard';
 import { useCollectionsStore } from '../stores/collections.store';
+import { api } from '../lib/api';
 import type { CollectionImage } from '../types';
 
 export default function CollectionDetailPage() {
@@ -21,8 +22,9 @@ export default function CollectionDetailPage() {
     if (currentCollection) setImages(currentCollection.images);
   }, [currentCollection]);
 
-  function handleRemove(imageId: string) {
+  async function handleRemove(imageId: string) {
     if (!confirm('Remove this image from the collection?')) return;
+    await api.delete(`/collections/${id}/images/${imageId}`);
     setImages((prev) => prev.filter((img) => img.id !== imageId));
   }
 
